@@ -79,7 +79,7 @@ android {
 
     namespace "com.client"
     defaultConfig {
-        applicationId "com.client"
+        applicationId "com.NS"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

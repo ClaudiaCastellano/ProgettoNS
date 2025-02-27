@@ -4,16 +4,16 @@ import {
   View,
   Text,
   Alert,
-  TouchableOpacity
+  TouchableOpacity,
+  AppState,
 } from "react-native";
 import { RTCView, mediaDevices, RTCPeerConnection, RTCSessionDescription } from "react-native-webrtc";
-import { socket } from "./signaling";
+import { getSocket } from "./signaling";
 import {broadcasterStyle} from "./styles";
 
 
 const BroadcasterPage = ({ route, navigation }) => {
-
-    const { streamId } = route.params;
+    const { streamId, username } = route.params;
     const [stream, setStream] = useState(null);
     const peerConnections = useRef({}); 
     const [error, setError] = useState(null);
@@ -22,13 +22,15 @@ const BroadcasterPage = ({ route, navigation }) => {
     const localStream = useRef(null);
     const [userCount, setUserCount] = useState(0);
 
+    const socket = getSocket();
+
     useEffect(() => {
         if (error && !errorShown) {
             // Mostra l'alert solo se l'errore non è stato ancora mostrato
             Alert.alert("Errore", error, [{ text: "OK", onPress: () => {
                 setError(null);
                 setErrorShown(true);  // Imposta flag a true dopo aver mostrato l'alert
-                navigation.navigate("Home");
+                navigation.navigate("Home", { username });
             }}]);
         }
     }, [error, errorShown]);
@@ -82,7 +84,7 @@ const BroadcasterPage = ({ route, navigation }) => {
                     iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
                 });
         
-                // Aggiungi il flusso del broadcaster al peer connection
+                // Flusso del broadcaster aggiunto al peer connection
                 localStream.current.getTracks().forEach((track) => pc.addTrack(track, localStream.current));
     
                 // Invia i candidati ICE al viewer
@@ -143,7 +145,7 @@ const BroadcasterPage = ({ route, navigation }) => {
         const newStream = await getStream(newIsFront);
         if (!newStream) return;
 
-        // Sostituisci i nuovi track nella connessione peer
+        // Sostituzione dei nuovi track nella connessione peer
         Object.values(peerConnections.current).forEach((pc) => {
             pc.getSenders().forEach((sender) => {
                 if (sender.track.kind === "video") {
@@ -158,10 +160,10 @@ const BroadcasterPage = ({ route, navigation }) => {
 
     return (
         <View style={broadcasterStyle.container}>
-        <Text style={broadcasterStyle.title}> "In diretta"</Text>
+        <Text style={broadcasterStyle.title}> Diretta "{streamId}" avviata</Text>
         <Text style={broadcasterStyle.title}>Utenti connessi: {userCount}</Text>
     
-        {/* Se sei il broadcaster, mostra il tuo flusso locale */}
+        {/* Mostra il tuo flusso locale del broadcaster */}
         {stream && (
             <RTCView streamURL={stream.toURL()} style={broadcasterStyle.video} />
         )}
@@ -173,8 +175,6 @@ const BroadcasterPage = ({ route, navigation }) => {
         <TouchableOpacity style={broadcasterStyle.switchButton} onPress={toggleCamera}>
             <Text style={broadcasterStyle.buttonText}>🔄 Cambia fotocamera</Text>
         </TouchableOpacity>
-        {/* Aggiungi log per i flussi locali e remoti */}
-        {stream && console.log("Flusso locale (broadcaster):", stream)}
         </View>
     );
 };

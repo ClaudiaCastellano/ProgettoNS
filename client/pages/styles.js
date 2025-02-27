@@ -21,6 +21,9 @@ export const homestyle = StyleSheet.create({
     modalTitle: { fontSize: 20, fontWeight: "bold", color: "#fff", marginBottom: 15},
     streamItem: { backgroundColor: "#03DAC5", padding: 8, borderRadius: 10, marginVertical: 5, width: "250", alignItems: "center"},
     streamText: { color: "#fff", fontSize: 16},
+    usernameText: { color: "#fff", fontSize: 16, marginTop: 20, position: "absolute", top: 2,right: 20},
+    logoutButton: {position: 'absolute',top: 44,right: 20,backgroundColor: 'transparent'},
+    logoutText: {fontSize: 14, color: '#FF6347', fontWeight: 'bold'}
   });
 
 export const broadcasterStyle = StyleSheet.create({
@@ -29,4 +32,15 @@ export const broadcasterStyle = StyleSheet.create({
     video: { width: "100%", height: "60%", backgroundColor: "#000" },
     switchButton: { marginTop: 20, padding: 10, backgroundColor: "#03DAC5", borderRadius: 30 },
     buttonText: { color: "#fff", fontSize: 16 }
+});
+
+
+export const authStyles = StyleSheet.create({
+    container: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#1E1E1E", padding: 20 },
+    title: { fontSize: 26, fontWeight: "bold", color: "#fff", marginBottom: 20 },
+    input: { width: "100%", padding: 15, borderRadius: 10, backgroundColor: "#333", color: "#fff", marginBottom: 15, fontSize: 16, textAlign: "center" },
+    button: { backgroundColor: "#6200ea", padding: 15, borderRadius: 30, alignItems: "center", marginVertical: 10, width: "80%" },
+    buttonText: { color: "#fff", fontSize: 18, fontWeight: "bold" },
+    linkText: { color: "#03DAC5", fontSize: 16, marginTop: 15, textAlign: "center" },
+    
 });

@@ -3,20 +3,23 @@ import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
-  Alert
+  Alert,
+  AppState,
 } from "react-native";
 import { RTCView, mediaDevices, RTCPeerConnection, RTCSessionDescription } from "react-native-webrtc";
-import { socket } from "./signaling";
+import { getSocket } from "./signaling";
 import {styles} from "./styles";
 
 
 const ViewerPage = ({ route, navigation }) => {
-    const { streamId } = route.params;
+    const { streamId, username } = route.params;
     const [remoteStreams, setRemoteStreams] = useState([]);
     const pc = useRef(null);
     const [userCount, setUserCount] = useState(0);
     const [error, setError] = useState(null);
     const [errorShown, setErrorShown] = useState(false); 
+
+    const socket = getSocket();
 
     useEffect(() => {
         if (error && !errorShown) {
@@ -24,7 +27,7 @@ const ViewerPage = ({ route, navigation }) => {
             Alert.alert("Errore", error, [{ text: "OK", onPress: () => {
                 setError(null);
                 setErrorShown(true);  // Imposta flag a true dopo aver mostrato l'alert
-                navigation.navigate("Home");
+                navigation.navigate("Home", { username });
             }}]);
         }
     }, [error, errorShown]);
@@ -49,10 +52,8 @@ const ViewerPage = ({ route, navigation }) => {
         
                 socket.on("signal", async ({ from, signal }) => {
                     console.log("Ricevuto segnale:", signal);
-                    console.log("pc.current esiste?", pc.current);
+                    console.log("pc.current", pc.current);
 
-                    console.log("sono un viewer e ho ricevuto un signal");
-                    console.log("il tipo di signal è", signal.type);
                     if (signal.type === "offer" && !pc.current.remoteDescription) {
                         console.log("Ricevuta offerta SDP dal broadcaster, preparo risposta...");
                         try {
@@ -63,7 +64,7 @@ const ViewerPage = ({ route, navigation }) => {
                             socket.emit("signal", { streamId, signal: answer });
                             console.log("Invio risposta SDP al signaling server", answer);
                         } catch (error) {
-                            console.error("Errore durante la ricezione dell'offerta:", error);
+                            console.log("Errore durante la ricezione dell'offerta:", error);
                         }
                     
                     } else if (signal.candidate !== undefined) {
@@ -120,25 +121,22 @@ const ViewerPage = ({ route, navigation }) => {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}> "Visualizzando diretta" </Text>
+            <Text style={styles.title}> Visualizzando diretta "{streamId}" </Text>
             <Text style={styles.title}>Utenti connessi: {userCount}</Text>
         
-            {/* Se sei un viewer, mostra i flussi remoti */}
+            {/* Mostra i flussi remoti */}
             {remoteStreams.length === 0 && (
             <Text>In attesa di flussi remoti...</Text>
             )}
         
             {remoteStreams.map((remoteStream, index) => {
-                console.log("Flusso remoto ricevuto:", remoteStream);
-                console.log("URL del flusso remoto:", remoteStream.toURL());
-                console.log("key:", index);
+                //console.log("Flusso remoto ricevuto:", remoteStream);
+                //console.log("URL del flusso remoto:", remoteStream.toURL());
                 return (
                     <RTCView key={index} streamURL={remoteStream.toURL()} style={styles.video} />
                 );
             })}
         
-            {/* Aggiungi log per i flussi locali e remoti */}
-            {console.log("Remote streams:", remoteStreams)}
         </View>
     );
       

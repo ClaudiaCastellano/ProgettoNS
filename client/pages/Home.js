@@ -1,29 +1,61 @@
-import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  FlatList,
-  Modal
-} from "react-native";
-import { socket } from "./signaling";
+import React, { useState, useEffect, useCallback } from "react";
+import { useFocusEffect } from "@react-navigation/native";
+import { View,Text,TextInput, TouchableOpacity, FlatList, Modal, BackHandler} from "react-native";
 import { homestyle } from "./styles";
+import { initializeSocket, getSocket } from './signaling';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const Home = ({ navigation }) => {
+const Home = ({ route, navigation }) => {
+  const initialUser = route.params.username || '';
   const [streamId, setStreamId] = useState("");
   const [availableStreams, setAvailableStreams] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [showInput, setShowInput] = useState(false);
+  const [socket, setSocket] = useState(null);
+  const [username, setUsername] = useState(initialUser);
 
   useEffect(() => {
-    socket.on("available-streams", (streams) => {
-      setAvailableStreams(streams);
-    });
+    const setupSocket = async () => {
+      await initializeSocket();
+      const socketInstance = getSocket();
+      setSocket(socketInstance);
+
+      if (socketInstance) {
+        socketInstance.on("username", (username) => {
+          setUsername(username);
+        });
+        socketInstance.on("available-streams", (streams) => {
+          setAvailableStreams(streams);
+        });
+
+        socketInstance.on("connect_error", (err) => { // Gestione errore di connessione
+          console.error("Errore di connessione:", err);
+        });
+      }
+    };
+
+    setupSocket();
+
     return () => {
-      socket.off("available-streams");
+      if (socket) {
+        socket.off("available-streams");
+        socket.off("username");
+      }
     };
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      const backAction = () => true; // Blocca il tasto "Back"
+      
+      const backHandler = BackHandler.addEventListener(
+        "hardwareBackPress",
+        backAction
+      );
+  
+      return () => backHandler.remove();
+    }, [])
+  );
 
   const fetchAvailableStreams = () => {
     socket.emit("get-streams");
@@ -32,14 +64,26 @@ const Home = ({ navigation }) => {
 
   const joinStream = (selectedId) => {
     setModalVisible(false);
-    navigation.navigate("Viewer", { streamId: selectedId });
+    navigation.navigate("Viewer", { streamId: selectedId, username: username });
   };
 
   const startBroadcast = () => {
     if (streamId.trim() !== "") {
-      navigation.navigate("Broadcast", { streamId });
+      navigation.navigate("Broadcast", { streamId , username: username });
       setStreamId("");
       setShowInput(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.removeItem('token'); // Elimina il token
+      console.log('Token rimosso');
+      socket.disconnect(); // Disconnetti il socket
+      console.log('Socket disconnesso', socket);
+      navigation.navigate("Login"); // Torna alla schermata di login
+    } catch (error) {
+      console.log('Errore nel logout:', error);
     }
   };
 
@@ -93,6 +137,11 @@ const Home = ({ navigation }) => {
           </View>
         </View>
       </Modal>
+
+      <Text style={homestyle.usernameText}>Utente: {username}</Text>
+      <TouchableOpacity style={homestyle.logoutButton} onPress={handleLogout}>
+        <Text style={homestyle.logoutText}>Logout</Text>
+      </TouchableOpacity>
     </View>
   );
 };

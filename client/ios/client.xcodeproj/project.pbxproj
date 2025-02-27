@@ -9,6 +9,9 @@
 /* Begin PBXBuildFile section */
 		0C80B921A6F3F58F76C31292 /* libPods-client.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5DCACB8F33CDC322A6C60F78 /* libPods-client.a */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
+		49A5E6B02D6C75B100AE68C5 /* RCTHTTPRequestHandler+ignoreSSL.m in Sources */ = {isa = PBXBuildFile; fileRef = 49A5E6AF2D6C75B100AE68C5 /* RCTHTTPRequestHandler+ignoreSSL.m */; };
+		49A5E6B52D6C7CB000AE68C5 /* RCTHTTPRequestHandler+ignoreSSL.h in Sources */ = {isa = PBXBuildFile; fileRef = 49A5E6B42D6C79F000AE68C5 /* RCTHTTPRequestHandler+ignoreSSL.h */; };
+		49A5E6B62D6C7CB400AE68C5 /* client-Bridging-Header.h in Sources */ = {isa = PBXBuildFile; fileRef = 49A5E6B12D6C75CC00AE68C5 /* client-Bridging-Header.h */; };
 		761780ED2CA45674006654EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
 		77DEBB682DD21193ABBDEECA /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
@@ -20,6 +23,9 @@
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = client/Info.plist; sourceTree = "<group>"; };
 		13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = client/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		3B4392A12AC88292D35C810B /* Pods-client.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-client.debug.xcconfig"; path = "Target Support Files/Pods-client/Pods-client.debug.xcconfig"; sourceTree = "<group>"; };
+		49A5E6AF2D6C75B100AE68C5 /* RCTHTTPRequestHandler+ignoreSSL.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "RCTHTTPRequestHandler+ignoreSSL.m"; sourceTree = "<group>"; };
+		49A5E6B12D6C75CC00AE68C5 /* client-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "client-Bridging-Header.h"; sourceTree = "<group>"; };
+		49A5E6B42D6C79F000AE68C5 /* RCTHTTPRequestHandler+ignoreSSL.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "RCTHTTPRequestHandler+ignoreSSL.h"; sourceTree = "<group>"; };
 		5709B34CF0A7D63546082F79 /* Pods-client.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-client.release.xcconfig"; path = "Target Support Files/Pods-client/Pods-client.release.xcconfig"; sourceTree = "<group>"; };
 		5DCACB8F33CDC322A6C60F78 /* libPods-client.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-client.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		761780EC2CA45674006654EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = client/AppDelegate.swift; sourceTree = "<group>"; };
@@ -48,11 +54,14 @@
 		13B07FAE1A68108700A75B9A /* client */ = {
 			isa = PBXGroup;
 			children = (
+				49A5E6B42D6C79F000AE68C5 /* RCTHTTPRequestHandler+ignoreSSL.h */,
+				49A5E6AF2D6C75B100AE68C5 /* RCTHTTPRequestHandler+ignoreSSL.m */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				761780EC2CA45674006654EE /* AppDelegate.swift */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
 				13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */,
+				49A5E6B12D6C75CC00AE68C5 /* client-Bridging-Header.h */,
 			);
 			name = client;
 			sourceTree = "<group>";
@@ -141,7 +150,7 @@
 				LastUpgradeCheck = 1210;
 				TargetAttributes = {
 					13B07F861A680F5B00A75B9A = {
-						LastSwiftMigration = 1120;
+						LastSwiftMigration = 1620;
 					};
 				};
 			};
@@ -256,6 +265,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				49A5E6B62D6C7CB400AE68C5 /* client-Bridging-Header.h in Sources */,
+				49A5E6B52D6C7CB000AE68C5 /* RCTHTTPRequestHandler+ignoreSSL.h in Sources */,
+				49A5E6B02D6C75B100AE68C5 /* RCTHTTPRequestHandler+ignoreSSL.m in Sources */,
 				761780ED2CA45674006654EE /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -288,6 +300,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.claudiacastellano.react;
 				PRODUCT_NAME = client;
+				SWIFT_OBJC_BRIDGING_HEADER = "client-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -318,6 +331,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.claudiacastellano.react;
 				PRODUCT_NAME = client;
+				SWIFT_OBJC_BRIDGING_HEADER = "client-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
