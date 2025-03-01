@@ -35,7 +35,7 @@ Il progetto è un'applicazione mobile che consente agli utenti, dopo essersi reg
 - **Socket.IO**: Libreria per la comunicazione in tempo reale tra client e server attraverso WebSockets, utilizzata per il signaling e la gestione degli eventi in tempo reale.
 - **React Navigation**: Libreria per la gestione della navigazione tra le schermate dell'app.
 - **React Native WebRTC**: Modulo per integrare WebRTC con React Native, permettendo la gestione dei flussi audio e video.
-- **Mongodb**: Database non relazionale per memorizzare le credenziali di accesso degli utenti.
+- **Mongodb**: Database document-oriented per memorizzare le credenziali di accesso degli utenti.
  
 ---
 
