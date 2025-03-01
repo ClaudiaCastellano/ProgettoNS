@@ -5,27 +5,30 @@ import { homestyle } from "./styles";
 import { initializeSocket, getSocket } from './signaling';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+// Creazione del functional component Home
 const Home = ({ route, navigation }) => {
-  const initialUser = route.params.username || '';
-  const [streamId, setStreamId] = useState("");
-  const [availableStreams, setAvailableStreams] = useState([]);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [showInput, setShowInput] = useState(false);
-  const [socket, setSocket] = useState(null);
-  const [username, setUsername] = useState(initialUser);
+  const initialUser = route.params.username || ''; // Ottiene il nome utente passato come parametro
+  const [streamId, setStreamId] = useState(""); // Stato per l'ID della diretta
+  const [availableStreams, setAvailableStreams] = useState([]); // Stato per le dirette disponibili
+  const [modalVisible, setModalVisible] = useState(false);  // Stato per la visibilità del modal
+  const [showInput, setShowInput] = useState(false);  // Stato per mostrare l'input per l'ID della diretta
+  const [socket, setSocket] = useState(null); // Stato per la socket
+  const [username, setUsername] = useState(initialUser);  // Stato per il nome utente
 
   useEffect(() => {
+    // Funzione per inizializzare la socket
     const setupSocket = async () => {
       await initializeSocket();
-      const socketInstance = getSocket();
-      setSocket(socketInstance);
+      const socketInstance = getSocket(); // Ottiene l'istanza della socket
+      setSocket(socketInstance); // Imposta la socket nell'app
 
+      // Se la socket è stata inizializzata, imposta i listener
       if (socketInstance) {
         socketInstance.on("username", (username) => {
-          setUsername(username);
+          setUsername(username); // Salva il nome utente
         });
         socketInstance.on("available-streams", (streams) => {
-          setAvailableStreams(streams);
+          setAvailableStreams(streams); // Salva le dirette disponibili
         });
 
         socketInstance.on("connect_error", (err) => { // Gestione errore di connessione
@@ -44,6 +47,7 @@ const Home = ({ route, navigation }) => {
     };
   }, []);
 
+  // Utilizzo di useFocusEffect per bloccare il tasto "Back" quando il componente è attivo
   useFocusEffect(
     useCallback(() => {
       const backAction = () => true; // Blocca il tasto "Back"
@@ -57,16 +61,19 @@ const Home = ({ route, navigation }) => {
     }, [])
   );
 
+  // Funzione per ottenere le dirette disponibili
   const fetchAvailableStreams = () => {
     socket.emit("get-streams");
     setModalVisible(true);
   };
 
+  // Funzione per unirsi a una diretta
   const joinStream = (selectedId) => {
     setModalVisible(false);
     navigation.navigate("Viewer", { streamId: selectedId, username: username });
   };
 
+  // Funzione per avviare una diretta
   const startBroadcast = () => {
     if (streamId.trim() !== "") {
       navigation.navigate("Broadcast", { streamId , username: username });
@@ -75,11 +82,12 @@ const Home = ({ route, navigation }) => {
     }
   };
 
+  // Funzione per gestire il logout
   const handleLogout = async () => {
     try {
       await AsyncStorage.removeItem('token'); // Elimina il token
       console.log('Token rimosso');
-      socket.disconnect(); // Disconnetti il socket
+      socket.disconnect(); // Disconnette la socket
       console.log('Socket disconnesso', socket);
       navigation.navigate("Login"); // Torna alla schermata di login
     } catch (error) {

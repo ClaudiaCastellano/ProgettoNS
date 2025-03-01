@@ -10,7 +10,7 @@ const User = require('./models/User');
 
 const app = express();
 app.use(express.json());
-app.use(cors()); // Permette le richieste cross-origin
+app.use(cors()); 
 
 // Connessione a MongoDB
 mongoose.connect(process.env.DB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -25,6 +25,7 @@ app.post('/register', async (req, res) => {
   try {
     // Verifica se l'email è già presente nel database
     const userExists = await User.findOne({ email });
+    // Se l'utente esiste, restituisce un errore
     if (userExists) return res.status(400).json({ error: 'Utente già esistente' });
 
     // Hash della password
@@ -65,10 +66,12 @@ app.post('/login', async (req, res) => {
 // Middleware di autenticazione
 const authenticate = (req, res, next) => {
   console.log('autenticando...');
+  // Estrae il token dall'header
   const token = req.headers.authorization?.split('Bearer ')[1];
   if (!token) return res.status(401).json({ error: 'Token richiesto' });
 
   try {
+    // Verifica il token
     req.user = jwt.verify(token, process.env.SECRET_KEY);
     console.log('Utente autenticato:', req.user);
     next();
@@ -92,6 +95,4 @@ https.createServer(credentials, app).listen(4000, () => {
   console.log('Server attivo su https://localhost:4000');
 });
 
-/*app.listen(4000, () => {
-  console.log('Server attivo su http://localhost:4000');
-});*/
+

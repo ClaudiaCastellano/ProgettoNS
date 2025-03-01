@@ -17,7 +17,9 @@ const liveStreams = {}; // Memorizza gli ID delle dirette e i relativi utenti
 
 //Middleware per verificare il token
 io.use(async (socket, next) => {
-  const token = socket.handshake.auth?.token; // Estrai il token dall’handshake
+  const token = socket.handshake.auth?.token; // Estrae il token dall’handshake
+  console.log('token', token);
+  // Se il token non è presente, interrompe la connessione
   if (!token) {
       return next(new Error("Token mancante"));
   }
@@ -29,6 +31,7 @@ io.use(async (socket, next) => {
       socket.user = response.data.user.email.split('@')[0]; // Salva i dati utente verificati
       next();
   } catch (error) {
+      console.log('Errore nella verifica del token:', error);
       next(new Error("Token non valido"));
   }
 });
@@ -39,13 +42,16 @@ function handlerLeaveBroadcast(socket, streamId) {
   if (!stream) return;
 
   console.log(`Utente ${socket.user} ha lasciato la diretta: ${streamId}`);
+  // Se l'utente è il broadcaster, termina la diretta
   if (stream.broadcaster === socket.id) {
     // Termina la diretta
     stream.viewers.forEach((viewerId) => {
-      io.to(viewerId).emit("broadcast-ended");
+      io.to(viewerId).emit("broadcast-ended"); // Invia il segnale di fine diretta ai viewer
     });
+    // Elimina la diretta dalla lista
     delete liveStreams[streamId];
     console.log(`Diretta terminata: ${streamId}`);
+    // Se l'utente è un viewer, lo rimuove dalla lista dei viewer
   } else {
     socket.broadcast.emit("viewer-disconnect", socket.id);
     const index = stream.viewers.indexOf(socket.id);
@@ -57,50 +63,57 @@ function handlerLeaveBroadcast(socket, streamId) {
   }
 }
 
-// Gestione degli eventi WebSocket
+// Gestione della connessione
 io.on("connection", (socket) => {
   console.log("Utente connesso:", socket.id, "Username:", socket.user);
-  socket.emit("username", socket.user);
+  socket.emit("username", socket.user); // Invia il nome utente all'utente connesso
 
   // Invia la lista delle dirette attive
   socket.on("get-streams", () => {
     socket.emit("available-streams", Object.keys(liveStreams));
   });
 
-  // Avvio di una diretta
+  // Gestione avvio di una diretta
   socket.on("start-broadcast", (streamId) => {
+    // Se l'ID diretta è già in uso, invia un errore
     if (liveStreams[streamId]) {
       socket.emit("error-broadcaster", "Diretta già esistente");
       return;
     }
+    // Aggiunge la diretta alla lista delle dirette attive
     liveStreams[streamId] = { broadcaster: socket.id, viewers: [] };
-    socket.join(streamId);
+    socket.join(streamId); 
     console.log(`Diretta "${streamId}" avviata da ${socket.user}`);
   });
 
-  //  Unirsi a una diretta
+  //  Gestione unione a una diretta
   socket.on("join-broadcast", (streamId) => {
+    // Se l'ID diretta non esiste, invia un errore
     const stream = liveStreams[streamId];
     if (!stream) {
       socket.emit("error-viewer", "Diretta non trovata");
       return;
     }
+    // Aggiunge l'utente alla lista dei viewer
     stream.viewers.push(socket.id);
     socket.join(streamId);
-    io.to(streamId).emit("user-count", stream.viewers.length + 1);
-    socket.to(streamId).emit("join-viewer", socket.id);
+    io.to(streamId).emit("user-count", stream.viewers.length + 1); // Invia il conteggio degli utenti
+    socket.to(streamId).emit("join-viewer", socket.id); // Invia il segnale di unione al broadcaster
     console.log(`Utente ${socket.user} si è unito alla diretta "${streamId}"`);
   });
 
-  // Scambio di segnali WebRTC
+  // Gestion segnali
   socket.on("signal", ({ streamId, to, signal }) => {
+    // Se l'ID diretta non esiste, interrompe l'operazione
     const stream = liveStreams[streamId];
     if (!stream) return;
 
+    // Se il segnale è inviato dal broadcaster, lo invia ai viewer
     if (socket.id === stream.broadcaster) {
       console.log(`Segnale inviato dal broadcaster ${socket.user} al viewer`);
       io.to(to).emit("signal", { from: socket.id, signal });
     } else {
+      // Se il segnale è inviato da un viewer, lo invia al broadcaster
       console.log(`Segnale inviato dal viewer ${socket.user} al broadcaster`);
       io.to(stream.broadcaster).emit("signal", { from: socket.id, signal });
     }
@@ -110,6 +123,7 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     console.log(`Utente ${socket.user} disconnesso`);
 
+    // Se l'utente è il broadcaster o un viewer, esegue la funzione di uscita
     Object.keys(liveStreams).forEach((streamId) => {
       const stream = liveStreams[streamId];
       if (stream.broadcaster === socket.id || stream.viewers.includes(socket.id)) {
@@ -118,7 +132,7 @@ io.on("connection", (socket) => {
     });
   });
 
-  // Uscire manualmente da una diretta
+  // Gestione uscita da una diretta
   socket.on("leave-broadcast", (streamId) => {
     handlerLeaveBroadcast(socket, streamId);
   });

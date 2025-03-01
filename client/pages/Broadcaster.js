@@ -1,27 +1,22 @@
 import 'react-native-gesture-handler';
 import React, { useState, useEffect, useRef } from "react";
-import {
-  View,
-  Text,
-  Alert,
-  TouchableOpacity,
-  AppState,
-} from "react-native";
+import {View, Text, Alert, TouchableOpacity} from "react-native";
 import { RTCView, mediaDevices, RTCPeerConnection, RTCSessionDescription } from "react-native-webrtc";
 import { getSocket } from "./signaling";
 import {broadcasterStyle} from "./styles";
 
-
+// Creazione del functional component BroadcasterPage
 const BroadcasterPage = ({ route, navigation }) => {
-    const { streamId, username } = route.params;
-    const [stream, setStream] = useState(null);
-    const peerConnections = useRef({}); 
-    const [error, setError] = useState(null);
-    const [errorShown, setErrorShown] = useState(false); 
+    const { streamId, username } = route.params; // Ottiene lo streamId e il nome utente passati come parametri
+    const [stream, setStream] = useState(null); // Stato per il flusso video
+    const peerConnections = useRef({});  // Registro delle connessioni peer
+    const [error, setError] = useState(null); // Stato per l'errore
+    const [errorShown, setErrorShown] = useState(false);  // Stato per mostrare l'errore
     const [isFront, setIsFront] = useState(true); // Stato per la fotocamera
-    const localStream = useRef(null);
-    const [userCount, setUserCount] = useState(0);
+    const localStream = useRef(null); // Flusso locale del broadcaster
+    const [userCount, setUserCount] = useState(0); // Stato per il conteggio degli utenti
 
+    // Ottiene l'istanza della socket
     const socket = getSocket();
 
     useEffect(() => {
@@ -35,42 +30,51 @@ const BroadcasterPage = ({ route, navigation }) => {
         }
     }, [error, errorShown]);
 
+    // Funzione per ottenere il flusso video
     const getStream = async (facing) => {
         try {
             const localStream = await mediaDevices.getUserMedia({
-                video: { facingMode: facing ? "user" : "environment" },
-                audio: true
+                video: { facingMode: facing ? "user" : "environment" }, // Imposta la fotocamera frontale o posteriore
+                audio: true // Abilita l'audio
             });
 
             return localStream;
         } catch (error) {
+            // In caso di errore, mostra l'errore
             setError("Autorizzazione necessaria. Per continuare consenti l'accesso alla fotocamera e al microfono dalle impostazioni del dispositivo.");
         }
     };
 
     useEffect(() => {
         
+        // Funzione per avviare la trasmissione
         const startBroadcast = async () => {
             console.log("Sono il broadcaster dello stream:", streamId);
 
+            // Ottiene il flusso video locale
             localStream.current = await getStream(isFront);
-            setStream(localStream.current);
-            if (!localStream.current) return;
+            setStream(localStream.current); // Imposta il flusso video locale
+            if (!localStream.current) return; // Se non c'è flusso, esce dalla funzione
 
+            // Invia il segnale di inizio trasmissione
             socket.emit("start-broadcast", streamId);
 
-
+            // Listener per ricevere i segnali dai viewer
             socket.on("signal", async ({ from, signal }) => {
                 console.log("Ricevuto segnale:", signal);
+                // Ottiene la connessione peer dal registro
                 const pc = peerConnections.current[from];
+                // Se la connessione peer non è trovata, mostra un messaggio di avviso
                 if (!pc) {
                     console.warn(`Connessione peer non trovata per viewer ${from}`);
                     return;
                 }
-        
+                
+                //Se il segnale contiene un candidato ICE, lo aggiunge alla connessione
                 if (signal.candidate) {
                     console.log(`Aggiungo ICE Candidate dal viewer ${from}`);
                     await pc.addIceCandidate(signal);
+                // Se il segnale contiene una risposta SDP, la imposta come remota
                 } else if (signal.type === "answer") {
                     console.log(`Ricevuta risposta SDP dal viewer ${from}`);
                     await pc.setRemoteDescription(new RTCSessionDescription(signal));
@@ -78,8 +82,10 @@ const BroadcasterPage = ({ route, navigation }) => {
                     
             });
             
+            // Listener per ricevere i viewer che si uniscono alla diretta
             socket.on("join-viewer", async (viewerId) => {
 
+                // Crea una nuova connessione peer
                 const pc = new RTCPeerConnection({
                     iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
                 });
@@ -97,53 +103,59 @@ const BroadcasterPage = ({ route, navigation }) => {
         
                 // Crea un'offerta SDP per il viewer
                 const offer = await pc.createOffer();
+                // Imposta l'offerta come descrizione locale
                 await pc.setLocalDescription(offer);
                 console.log(`Invio offerta SDP al viewer ${viewerId}`);
                 socket.emit("signal", { streamId, to: viewerId, signal: offer });
     
-                // Aggiungi la connessione al registro
+                // Aggiunge la connessione al registro
                 peerConnections.current[viewerId] = pc;
                         
             });
             
-
+            // Listener per ricevere il conteggio degli utenti
             socket.on("user-count", (count) => {
                 console.log("Utenti connessi:", count);
                 setUserCount(count-1);
             });
 
+            // Listener per ricevere la disconnessione del viewer
             socket.on("viewer-disconnect", (viewerId) => {
                 console.log(`Viewer disconnesso: ${viewerId}`);
                 const pc = peerConnections.current[viewerId];
                 if (pc) {
-                    pc.close();
-                    delete peerConnections.current[viewerId];
+                    pc.close(); // Chiude la connessione peer
+                    delete peerConnections.current[viewerId]; // Elimina la connessione dal registro
                 }
             });
 
+            // Listener per ricevere l'errore di diretta già esistente
             socket.on("error-broadcaster", () => {
                 setError("ID diretta già utilizzato");
             });
         
         };
 
+        // Avvia la trasmissione
         startBroadcast();
 
         return () => {
-            socket.emit("leave-broadcast", streamId);
+            socket.emit("leave-broadcast", streamId); 
             console.log("ho invocato leave broadcast");
             Object.values(peerConnections.current).forEach((pc) => pc.close());
         };
     }, [streamId, navigation]);
 
+    // Funzione per cambiare la fotocamera
     const toggleCamera = async () => {
         if (!stream) return;
 
         const newIsFront = !isFront;
         setIsFront(newIsFront);
 
+        // Ottiene il nuovo flusso video con la fotocamera selezionata
         const newStream = await getStream(newIsFront);
-        if (!newStream) return;
+        if (!newStream) return; // Se non c'è flusso, esce dalla funzione
 
         // Sostituzione dei nuovi track nella connessione peer
         Object.values(peerConnections.current).forEach((pc) => {
@@ -154,6 +166,7 @@ const BroadcasterPage = ({ route, navigation }) => {
             });
         });
 
+        // Sostituzione del flusso locale con il nuovo flusso
         localStream.current = newStream;
         setStream(newStream);
     };
