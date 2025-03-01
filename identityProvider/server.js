@@ -55,7 +55,7 @@ app.post('/login', async (req, res) => {
     if (!isValid) return res.status(401).json({ error: 'Password errata' });
 
     // Genera il token JWT
-    const token = jwt.sign({ userId: user._id, email: user.email }, process.env.SECRET_KEY, { expiresIn: '1h' });
+    const token = jwt.sign({ userId: user._id, email: user.email }, process.env.SECRET_KEY, { expiresIn: 600 });
     console.log('Token generato:', token);
     res.json({ token });
   } catch (err) {
@@ -86,8 +86,8 @@ app.get('/protected', authenticate, (req, res) => {
   res.json({ message: 'Accesso autorizzato!', user: req.user });
 });
 
-const privateKey = fs.readFileSync('../certificati/192.168.1.90-key.pem', 'utf8');
-const certificate = fs.readFileSync('../certificati/192.168.1.90.pem', 'utf8');
+const privateKey = fs.readFileSync('../certificati/172.20.10.2-key.pem', 'utf8');
+const certificate = fs.readFileSync('../certificati/172.20.10.2.pem', 'utf8');
 const credentials = { key: privateKey, cert: certificate };
 
 // Avvio del server

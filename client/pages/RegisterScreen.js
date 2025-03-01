@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { View, TextInput, Text, TouchableOpacity, Alert } from 'react-native';
 import axios from 'axios';
 import {authStyles} from './styles';
+import config from './config'
 
 // Creazione del functional component RegisterScreen
 const RegisterScreen = ({ navigation }) => {
   const [email, setEmail] = useState(''); // Stato per l'email
   const [password, setPassword] = useState('');  // Stato per la password
   const [confirmPassword, setConfirmPassword] = useState(''); // Stato per la conferma della password
+  const registerUrl = `${config.IdP}/register`;
 
   // Funzione per gestire la registrazione
   const handleRegister = async () => {
@@ -18,7 +20,7 @@ const RegisterScreen = ({ navigation }) => {
 
     try {
       // Chiamata POST all'endpoint di registrazione con email e password
-      const response = await axios.post('https://192.168.1.90:4000/register', { email, password });
+      const response = await axios.post(registerUrl, { email, password });
       
       //Naviga alla schermata di login dopo la registrazione
       navigation.replace('Login');

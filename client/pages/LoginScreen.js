@@ -4,11 +4,13 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {authStyles} from './styles';
 import { useFocusEffect } from "@react-navigation/native";
+import config from './config';
 
 // Creazione del functional component LoginScreen
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState(''); // Stato per l'email
   const [password, setPassword] = useState(''); // Stato per la password
+  const loginUrl = `${config.IdP}/login`;
 
   // Funzione per salvare il token in AsyncStorage
   const saveToken = async (token) => {
@@ -38,7 +40,7 @@ const LoginScreen = ({ navigation }) => {
   const handleLogin = async () => {
     try {
       // Chiamata POST all'endpoint di login con email e password
-      const response = await axios.post('https://192.168.1.90:4000/login', { email, password });
+      const response = await axios.post(loginUrl, { email, password });
       console.log('response',response);
       // Estrae il token dalla risposta
       const { token } = response.data;

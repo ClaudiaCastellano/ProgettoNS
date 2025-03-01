@@ -286,7 +286,7 @@
 				DEVELOPMENT_TEAM = Q9CC6S44Y4;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = client/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = ReactNative;
+				INFOPLIST_KEY_CFBundleDisplayName = "M&LBubbleSecurity";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -298,7 +298,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.claudiacastellano.react;
+				PRODUCT_BUNDLE_IDENTIFIER = com.claudiacastellano.react2;
 				PRODUCT_NAME = client;
 				SWIFT_OBJC_BRIDGING_HEADER = "client-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -317,7 +317,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = Q9CC6S44Y4;
 				INFOPLIST_FILE = client/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = ReactNative;
+				INFOPLIST_KEY_CFBundleDisplayName = "M&LBubbleSecurity";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -329,7 +329,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.claudiacastellano.react;
+				PRODUCT_BUNDLE_IDENTIFIER = com.claudiacastellano.react2;
 				PRODUCT_NAME = client;
 				SWIFT_OBJC_BRIDGING_HEADER = "client-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;

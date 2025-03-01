@@ -3,35 +3,35 @@ const https = require("https");
 const fs = require("fs");
 const { Server } = require("socket.io");
 const axios = require('axios');
+const config = require('./config.js');
 
-const privateKey = fs.readFileSync("../certificati/192.168.1.90-key.pem", "utf8");
-const certificate = fs.readFileSync("../certificati/192.168.1.90.pem", "utf8");
+const privateKey = fs.readFileSync("../certificati/172.20.10.2-key.pem", "utf8");
+const certificate = fs.readFileSync("../certificati/172.20.10.2.pem", "utf8");
 const credentials = { key: privateKey, cert: certificate };
 
 const app = express();
 const server = https.createServer(credentials, app);
 const io = new Server(server, { cors: { origin: "*" } });
 
+const protectedUrl = `${config.IdP}/protected`;
 
 const liveStreams = {}; // Memorizza gli ID delle dirette e i relativi utenti
 
 //Middleware per verificare il token
 io.use(async (socket, next) => {
   const token = socket.handshake.auth?.token; // Estrae il token dall’handshake
-  console.log('token', token);
   // Se il token non è presente, interrompe la connessione
   if (!token) {
       return next(new Error("Token mancante"));
   }
   try {
       // Verifica il token chiamando l'endpoint del server IDP
-      const response = await axios.get("https://192.168.1.90:4000/protected", {
+      const response = await axios.get(protectedUrl, {
           headers: { Authorization: `Bearer ${token}` }
       });
       socket.user = response.data.user.email.split('@')[0]; // Salva i dati utente verificati
       next();
   } catch (error) {
-      console.log('Errore nella verifica del token:', error);
       next(new Error("Token non valido"));
   }
 });

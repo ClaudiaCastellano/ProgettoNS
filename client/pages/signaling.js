@@ -1,5 +1,6 @@
 import { io } from 'socket.io-client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import config from './config';
 
 let socket = null;
 
@@ -24,7 +25,7 @@ export const initializeSocket = async () => {
     const token = await getToken();
     // Se il token è presente, inizializza la socket
     if (token) {
-      socket = io('https://192.168.1.90:3000', {
+      socket = io(config.signalingServer, {
         auth: { token },
       });
 
