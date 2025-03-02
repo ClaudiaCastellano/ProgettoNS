@@ -35,9 +35,10 @@ Il progetto è un'applicazione mobile che consente agli utenti, dopo essersi reg
 - **Socket.IO**: Libreria per la comunicazione in tempo reale tra client e server attraverso WebSockets, utilizzata per il signaling e la gestione degli eventi in tempo reale.
 - **React Navigation**: Libreria per la gestione della navigazione tra le schermate dell'app.
 - **React Native WebRTC**: Modulo per integrare WebRTC con React Native, permettendo la gestione dei flussi audio e video.
-- **Mongodb**: Database document-oriented per memorizzare le credenziali di accesso degli utenti.
+- **Mongodb**: Database document-oriented per la persistenza dei dati.
 - **JWT (JSON Web Token)**: Sistema di autenticazione basato su token.
 - **AsyncStorage**: Per la gestione dello stato locale e della persistenza del token di autenticazione.
+- **bcryptjs**: Per la crittografia delle password.
 - **Axios**: Libreria per effettuare richieste al backend.
  
 ---
@@ -136,6 +137,28 @@ npx react-native run-ios
 ```
  
 Questo avvierà l'app sul simulatore iOS o sul dispositivo fisico (se configurato).
+
+### 6. **Avviare i server**
+
+#### a. signaling server
+
+Per avviare il server di segnalazione spostati nella cartella `server` ed esegui il comando 
+```bash
+node server.js
+```
+
+Questo metterà il server di segnalazione in ascolto sul porto 3000.
+
+#### b. identity provider
+
+- Come prima cosa assicurati di avere **mongodb** istallato nel tuo sistema. Se non lo hai puoi scaricarlo [seguendo questa guida](https://www.mongodb.com/docs/manual/installation/).
+- Dopo averlo istallato assicurati che sia in esecuzione.
+- Nella cartella `identityProvider` crea un file `.env` e assegna alla variabile `DB_URI` l'indirizzo del database e alla variabile `SECRET_KEY` una stringa da usare come chiave per la generazione del token.
+- A questo punto avvia il server identity provider spostantodi nella cartella `identityProvider` ed eseguendo il comando 
+```bash
+node server.js
+```
+Questo metterà il server di identity provider in ascolto sul porto 4000 e mostrerà il log "Connesso a MongoDB" se la connessione con il database è avvenuta correttamente.
  
 ## 4. Struttura del Progetto
  
@@ -189,8 +212,10 @@ La struttura principale del progetto include:
   - **Home**: Schermata per la home page che offre la possibilità di avviare o partecipare a una trasmissione.
   - **Broadcaster**: Schermata per la gestione del flusso video da parte di un broadcaster.
   - **Viewer**: Schermata per i viewer che guardano la diretta.
-  - **LoginScreen**: Schermata per il login degli utenti.
-  - **RegisterScreen**: Schermata per la registrazione di un nuovo utente.
+  - **Login**: Schermata per il login degli utenti.
+  - **Register**: Schermata per la registrazione di un nuovo utente.
+- **Funzione principale**:
+  - `setupSocket()`: prova ad inizializzare la socket. Se la connessione va a buon fine significa che l'utente è autenticato e di conseguenza mostra direttamente la schermata Home. Se invece si verificano errori di connessione viene mostrata la schermata di login.
 
 ### `LoginScreen`
 - **Funzione**: Schermata di login che permette agli utenti di autenticarsi inserendo email e password.
@@ -253,7 +278,7 @@ La struttura principale del progetto include:
   - `startViewer()`: Si connette alla trasmissione, riceve i flussi dal broadcaster e gestisce gli eventi trasmessi dal server di segnalazione.
   - `ontrack`: Aggiunge il flusso remoto alla lista di `remoteStreams` quando il flusso viene ricevuto.
 
- ### `server.js`
+ ### `server/server.js`
 
 - **Gestione delle dirette live**:
 
@@ -261,19 +286,19 @@ La struttura principale del progetto include:
 
    - Gestisce l'avvio e la fine delle dirette, assicurandosi che solo un broadcaster possa avviare una diretta e che i viewer possano connettersi a una diretta esistente.
  
-- **Gestione delle connessioni tramite WebSocket**:
+- **Middleware per verificare le connessioni WebSocket**:
 
-   - Quando un utente si connette, il server stabilisce una connessione WebSocket tramite **Socket.IO**.
+   - Quando un utente prova a connettersi, il server verifica il token inviando una richiesta all'identity provider.
 
-   - Ogni connessione può inviare e ricevere eventi per partecipare alla diretta, inviare segnali per la connessione peer-to-peer (come offerte, risposte e candidati ICE) e ricevere notifiche in tempo reale.
+   - Se il token è valido accetta la connessione e consente all'utente l'accesso alle funzionalità dell'applicazione; se invece il token non è valido rifiuta la connessione e invia un errore. 
 
 - **Funzioni principali del server**:
 
-   - **Avvio di una diretta (`start-broadcast`)**: Il broadcaster invia un evento con l'ID della diretta. Se la diretta non esiste, il server crea una nuova sessione di streaming e aggiunge il broadcaster.
+   - **Avvio di una diretta (`start-broadcast`)**: Il broadcaster invia un evento con l'ID della diretta. Il server come prima cosa verifica se il token è ancora valido. In caso affermativo, se la diretta non esiste, il server crea una nuova sessione di streaming e aggiunge il broadcaster.
 
-   - **Partecipazione di un viewer (`join-broadcast`)**: I viewer inviano l'ID della diretta a cui vogliono unirsi. Se la diretta esiste, vengono aggiunti alla sessione e viene notificato a tutti gli utenti connessi il numero aggiornato di partecipanti.
+   - **Partecipazione di un viewer (`join-broadcast`)**: I viewer inviano l'ID della diretta a cui vogliono unirsi. Il server come prima cosa verifica se il token è ancora valido. In caso affermativo, se la diretta esiste, vengono aggiunti alla sessione e viene notificato a tutti gli utenti connessi il numero aggiornato di partecipanti.
 
-   - **Invio di segnali**: Quando il broadcaster o un viewer invia segnali (per esempio, per l'avvio di una connessione peer-to-peer), il server inoltra questi segnali ai destinatari (broadcaster o viewer).
+   - **Invio di segnali**: Quando il broadcaster o un viewer invia segnali (per esempio, offerte/risposte SDP oppure candidati ICE), il server inoltra questi segnali ai destinatari (broadcaster o viewer).
 
    - **Disconnessione di un utente (`disconnect`)**: Quando un utente si disconnette, il server gestisce la sua uscita dalla diretta, rimuovendolo dalla lista dei partecipanti e notificando gli altri utenti.
 
@@ -300,6 +325,17 @@ La struttura principale del progetto include:
    - **`viewer-disconnect`**: Notifica a tutti i partecipanti quando un viewer si disconnette.
 
    - **`broadcast-ended`**: Notifica a tutti i viewer quando una diretta è terminata dal broadcaster.
+ 
+ ### `identityProvider/server.js`
+ 
+ - **Funzioni principali del server identity provider**:
+   
+   - **Registrazione utente (`POST /register`)**: Registra un nuovo utente nel database con una password crittografata.
+   - **Login utente (`POST /login`)**: Verifica le credenziali dell'utente e restituisce un token JWT.
+   - **Logout utente (`POST /logout`)**: Revoca il token di autenticazione attuale dell'utente.
+   - **Accesso protetto (`POST /protected`)**: Endpoint che richiede un token JWD valido in modo da autorizzare l'accesso al sistema.
+
+ - **Middleware di autenticazione (`authenticate`)**: Verifica se il token JWT è valido e attivo prima di consentire l'accesso all'endpoint protetto.
 
  ---
 
