@@ -17,7 +17,7 @@
     - `server/server.js`
     - `identityProvider/server.js`
 
-6. [**Schema di Funzionamento**](#6-schema-di-funzionamento)
+6. [**Diagramma di flusso per l'accesso**](#6-diagramma-di-flusso-per-l'accesso)
 
 
 ---
@@ -342,4 +342,4 @@ La struttura principale del progetto include:
  ## 6. Schema di Funzionamento
  
  
-![diagrammaFunzionamento](images/diagrammaFunzionamento.png)
+![diagrammaFlusso](images/diagrammaFlusso.png)
