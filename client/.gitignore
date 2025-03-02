@@ -65,6 +65,8 @@ yarn-error.log
 # testing
 /coverage
 
+asset/certificates
+
 # Yarn
 .yarn/*
 !.yarn/patches

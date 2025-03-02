@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useFocusEffect } from "@react-navigation/native";
-import { View,Text,TextInput, TouchableOpacity, FlatList, Modal, BackHandler} from "react-native";
-import { homestyle } from "./styles";
+import { View,Text,TextInput, TouchableOpacity, FlatList, Modal, BackHandler, ImageBackground} from "react-native";
+import { homestyle, stylesBackground } from "./styles";
 import { initializeSocket, getSocket } from './signaling';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import config from './config';
@@ -84,18 +84,6 @@ const Home = ({ route, navigation }) => {
     }
   };
 
-  // Funzione per gestire il logout
-  /*const handleLogout = async () => {
-    try {
-      await AsyncStorage.removeItem('token'); // Elimina il token
-      console.log('Token rimosso');
-      socket.disconnect(); // Disconnette la socket
-      console.log('Socket disconnesso', socket);
-      navigation.navigate("Login"); // Torna alla schermata di login
-    } catch (error) {
-      console.log('Errore nel logout:', error);
-    }
-  };*/
 
   const handleLogout = async () => {
     const token = await AsyncStorage.getItem('token');
@@ -124,61 +112,66 @@ const Home = ({ route, navigation }) => {
   };
 
   return (
-    <View style={homestyle.container}>
-      <Text style={homestyle.title}>Benvenuto!</Text>
+    <ImageBackground 
+        source={require('./background.jpg')} // Sostituisci con il percorso corretto
+        style={stylesBackground.backgroundImage}
+    >
+      <View style={stylesBackground.overlay}>
+        <Text style={homestyle.title}>Benvenuto!</Text>
 
-      {!showInput ? (
-        <TouchableOpacity style={homestyle.button} onPress={() => setShowInput(true)}>
-          <Text style={homestyle.buttonText}>Avvia una diretta</Text>
-        </TouchableOpacity>
-      ) : (
-        <>
-          <TextInput
-            style={homestyle.input}
-            placeholder="Inserisci ID diretta"
-            placeholderTextColor="#aaa"
-            value={streamId}
-            onChangeText={setStreamId}
-          />
-          <TouchableOpacity style={homestyle.button} onPress={startBroadcast}>
-            <Text style={homestyle.buttonText}>Conferma e Avvia</Text>
+        {!showInput ? (
+          <TouchableOpacity style={homestyle.button} onPress={() => setShowInput(true)}>
+            <Text style={homestyle.buttonText}>Avvia una diretta</Text>
           </TouchableOpacity>
-        </>
-      )}
-
-      <TouchableOpacity style={homestyle.buttonSecondary} onPress={fetchAvailableStreams}>
-        <Text style={homestyle.buttonText}>Unisciti a una diretta</Text>
-      </TouchableOpacity>
-
-      <Modal visible={modalVisible} animationType="slide" transparent={true}>
-        <View style={homestyle.modalContainer}>
-          <View style={homestyle.modalContent}>
-            <Text style={homestyle.modalTitle}>
-              {availableStreams.length > 0
-                ? "Seleziona una diretta"
-                : "Non ci sono dirette disponibili"}
-            </Text>
-            <FlatList
-              data={availableStreams}
-              keyExtractor={(item) => item}
-              renderItem={({ item }) => (
-                <TouchableOpacity style={homestyle.streamItem} onPress={() => joinStream(item)}>
-                  <Text style={homestyle.streamText}>{item}</Text>
-                </TouchableOpacity>
-              )}
+        ) : (
+          <>
+            <TextInput
+              style={homestyle.input}
+              placeholder="Inserisci ID diretta"
+              placeholderTextColor="#aaa"
+              value={streamId}
+              onChangeText={setStreamId}
             />
-            <TouchableOpacity style={homestyle.buttonChiudi} onPress={() => setModalVisible(false)}>
-              <Text style={homestyle.buttonText}>Chiudi</Text>
+            <TouchableOpacity style={homestyle.button} onPress={startBroadcast}>
+              <Text style={homestyle.buttonText}>Conferma e Avvia</Text>
             </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+          </>
+        )}
 
-      <Text style={homestyle.usernameText}>Utente: {username}</Text>
-      <TouchableOpacity style={homestyle.logoutButton} onPress={handleLogout}>
-        <Text style={homestyle.logoutText}>Logout</Text>
-      </TouchableOpacity>
-    </View>
+        <TouchableOpacity style={homestyle.buttonSecondary} onPress={fetchAvailableStreams}>
+          <Text style={homestyle.buttonText}>Unisciti a una diretta</Text>
+        </TouchableOpacity>
+
+        <Modal visible={modalVisible} animationType="slide" transparent={true}>
+          <View style={homestyle.modalContainer}>
+            <View style={homestyle.modalContent}>
+              <Text style={homestyle.modalTitle}>
+                {availableStreams.length > 0
+                  ? "Seleziona una diretta"
+                  : "Non ci sono dirette disponibili"}
+              </Text>
+              <FlatList
+                data={availableStreams}
+                keyExtractor={(item) => item}
+                renderItem={({ item }) => (
+                  <TouchableOpacity style={homestyle.streamItem} onPress={() => joinStream(item)}>
+                    <Text style={homestyle.streamText}>{item}</Text>
+                  </TouchableOpacity>
+                )}
+              />
+              <TouchableOpacity style={homestyle.buttonChiudi} onPress={() => setModalVisible(false)}>
+                <Text style={homestyle.buttonText}>Chiudi</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+
+        <Text style={homestyle.usernameText}>Utente: {username}</Text>
+        <TouchableOpacity style={homestyle.logoutButton} onPress={handleLogout}>
+          <Text style={homestyle.logoutText}>Logout</Text>
+        </TouchableOpacity>
+      </View>
+    </ImageBackground>
   );
 };
 

@@ -1,8 +1,8 @@
 import React, { useState, useCallback } from 'react';
-import { View, TextInput, BackHandler, Text, TouchableOpacity, Alert } from 'react-native';
+import { View, TextInput, BackHandler, Text, TouchableOpacity, Alert, ImageBackground } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {authStyles} from './styles';
+import {authStyles, stylesBackground} from './styles';
 import { useFocusEffect } from "@react-navigation/native";
 import config from './config';
 
@@ -59,31 +59,36 @@ const LoginScreen = ({ navigation }) => {
   };
 
   return (
-    <View style={authStyles.container}>
-    <Text style={authStyles.title}>Login</Text>
-    <TextInput 
-      style={authStyles.input} 
-      placeholder="Email" 
-      placeholderTextColor="#bbb"
-      value={email} 
-      onChangeText={setEmail} 
-    />
-    <TextInput 
-      style={authStyles.input} 
-      placeholder="Password" 
-      placeholderTextColor="#bbb"
-      secureTextEntry 
-      value={password} 
-      onChangeText={setPassword} 
-    />
-    <TouchableOpacity style={authStyles.button} onPress={handleLogin}>
-      <Text style={authStyles.buttonText}>Accedi</Text>
-    </TouchableOpacity>
+    <ImageBackground 
+      source={require('./background.jpg')} // Sostituisci con il percorso corretto
+      style={stylesBackground.backgroundImage}
+    >
+      <View style={stylesBackground.overlay}>
+        <Text style={authStyles.title}>Login</Text>
+        <TextInput 
+          style={authStyles.input} 
+          placeholder="Email" 
+          placeholderTextColor="#bbb"
+          value={email} 
+          onChangeText={setEmail} 
+        />
+        <TextInput 
+          style={authStyles.input} 
+          placeholder="Password" 
+          placeholderTextColor="#bbb"
+          secureTextEntry 
+          value={password} 
+          onChangeText={setPassword} 
+        />
+        <TouchableOpacity style={authStyles.button} onPress={handleLogin}>
+          <Text style={authStyles.buttonText}>Accedi</Text>
+        </TouchableOpacity>
 
-    <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-      <Text style={authStyles.linkText}>Non hai un account? Registrati</Text>
-    </TouchableOpacity>
-  </View>
+        <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+          <Text style={authStyles.linkText}>Non hai un account? Registrati</Text>
+        </TouchableOpacity>
+      </View>
+    </ImageBackground>
   );
 };
 

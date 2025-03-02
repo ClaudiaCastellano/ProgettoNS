@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { View, TextInput, Text, TouchableOpacity, Alert } from 'react-native';
+import { View, TextInput, Text, TouchableOpacity, Alert, ImageBackground } from 'react-native';
 import axios from 'axios';
-import {authStyles} from './styles';
+import {authStyles, stylesBackground} from './styles';
 import config from './config'
 
 // Creazione del functional component RegisterScreen
@@ -33,39 +33,44 @@ const RegisterScreen = ({ navigation }) => {
   };
 
   return (
-    <View style={authStyles.container}>
-      <Text style={authStyles.title}>Registrazione</Text>
-      <TextInput 
-        style={authStyles.input} 
-        placeholder="Email" 
-        placeholderTextColor="#bbb"
-        value={email} 
-        onChangeText={setEmail} 
-      />
-      <TextInput 
-        style={authStyles.input} 
-        placeholder="Password" 
-        placeholderTextColor="#bbb"
-        secureTextEntry 
-        value={password} 
-        onChangeText={setPassword} 
-      />
-      <TextInput 
-        style={authStyles.input} 
-        placeholder="Conferma Password" 
-        placeholderTextColor="#bbb"
-        secureTextEntry 
-        value={confirmPassword} 
-        onChangeText={setConfirmPassword} 
-      />
-      <TouchableOpacity style={authStyles.button} onPress={handleRegister}>
-        <Text style={authStyles.buttonText}>Registrati</Text>
-      </TouchableOpacity>
+      <ImageBackground 
+        source={require('./background.jpg')} // Sostituisci con il percorso corretto
+        style={stylesBackground.backgroundImage}
+      >
+        <View style={stylesBackground.overlay}>
+        <Text style={authStyles.title}>Registrazione</Text>
+        <TextInput 
+          style={authStyles.input} 
+          placeholder="Email" 
+          placeholderTextColor="#bbb"
+          value={email} 
+          onChangeText={setEmail} 
+        />
+        <TextInput 
+          style={authStyles.input} 
+          placeholder="Password" 
+          placeholderTextColor="#bbb"
+          secureTextEntry 
+          value={password} 
+          onChangeText={setPassword} 
+        />
+        <TextInput 
+          style={authStyles.input} 
+          placeholder="Conferma Password" 
+          placeholderTextColor="#bbb"
+          secureTextEntry 
+          value={confirmPassword} 
+          onChangeText={setConfirmPassword} 
+        />
+        <TouchableOpacity style={authStyles.button} onPress={handleRegister}>
+          <Text style={authStyles.buttonText}>Registrati</Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-        <Text style={authStyles.linkText}>Hai già un account? Accedi</Text>
-      </TouchableOpacity>
-    </View>
+        <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+          <Text style={authStyles.linkText}>Hai già un account? Accedi</Text>
+        </TouchableOpacity>
+      </View>
+    </ImageBackground>
   );
 };
 

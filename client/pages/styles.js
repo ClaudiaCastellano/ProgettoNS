@@ -42,5 +42,9 @@ export const authStyles = StyleSheet.create({
     button: { backgroundColor: "#6200ea", padding: 15, borderRadius: 30, alignItems: "center", marginVertical: 10, width: "80%" },
     buttonText: { color: "#fff", fontSize: 18, fontWeight: "bold" },
     linkText: { color: "#03DAC5", fontSize: 16, marginTop: 15, textAlign: "center" },
-    
+});
+
+export const stylesBackground = StyleSheet.create({
+    backgroundImage: {flex: 1, resizeMode: 'cover', width: '100%', height: '100%'},
+    overlay: {flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.5)', justifyContent: 'center',alignItems: 'center', padding: 20,},
 });

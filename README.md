@@ -326,12 +326,12 @@ La struttura principale del progetto include:
 
    - **`broadcast-ended`**: Notifica a tutti i viewer quando una diretta è terminata dal broadcaster.
  
- ### `identityProvider/server.js`
+### `identityProvider/server.js`
  
  - **Funzioni principali del server identity provider**:
    
    - **Registrazione utente (`POST /register`)**: Registra un nuovo utente nel database con una password crittografata.
-   - **Login utente (`POST /login`)**: Verifica le credenziali dell'utente e restituisce un token JWT.
+   - **Login utente (`POST /login`)**: Verifica le credenziali dell'utente e restituisce un token JWT. Blocca per 15 minuti l'account di un utente che inserisce una passowrd errata per tre volte consecutive. 
    - **Logout utente (`POST /logout`)**: Revoca il token di autenticazione attuale dell'utente.
    - **Accesso protetto (`POST /protected`)**: Endpoint che richiede un token JWD valido in modo da autorizzare l'accesso al sistema.
 
@@ -339,7 +339,17 @@ La struttura principale del progetto include:
 
  ---
 
- ## 6. Diagramma di flusso per accesso
+## 6. Diagramma di flusso per accesso
  
  
 ![diagrammaFlusso](images/diagrammaFlusso.png)
+
+Il client, all'avvio dell'app, recupera il token dall'AsyncStorage e lo invia nella richiesta di connessione verso il server di segnalazione. 
+
+Il server di segnalazione, prima di accettare la connessione contatta l'identity provider per sapere se il token che ha ricevuto è valido e attivo. 
+
+L'identity provider controlla se il token è attivo interrogato il database in cui conserva informazioni sui token attivi. In caso affermativo ne controlla la validità decodificandolo con il secret. 
+
+Se il token è valido e attivo, il server accetta la connessione, l'utente è autenticato e può accedere alla schermata Home.
+
+Se il token non è presente nell'AsyncStorage oppure è presente ma non è valido e/o attivo, il server rifiuta la connessione e all'utente viene chiesto di eseguire nuovamente il login e viene dunque indirizzato alla schermata LoginScreen.

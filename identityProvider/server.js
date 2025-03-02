@@ -50,10 +50,24 @@ app.post('/login', async (req, res) => {
     const user = await User.findOne({email });
     if (!user) return res.status(400).json({ error: 'Utente non trovato' });
 
+    if(user.isLocked()){
+      return res.status(403).json({ error: 'Account bloccato. Riprova più tardi' });
+    }
+
     // Confronta la password hashata
     const isValid = await bcrypt.compare(password, user.password);
-    if (!isValid) return res.status(401).json({ error: 'Password errata' });
-
+    if (!isValid) {
+      user.loginAttempts += 1;
+      if(user.loginAttempts >= 3){
+        user.lockUntil = new Date(Date.now() + 15 * 60 * 1000); // Blocca l'account per 15 minuti
+      }
+      await user.save();
+      return res.status(401).json({ error: 'Password errata' });
+      
+    }
+    user.loginAttempts = 0;
+    user.lockUntil = undefined;
+    await user.save();
     // Genera il token JWT
     const token = jwt.sign({ userId: user._id, email: user.email }, process.env.SECRET_KEY, { expiresIn: 600 });
     await ActiveTokens.create({ userId: user._id, token });
@@ -73,7 +87,7 @@ const authenticate = async (req, res, next) => {
   if (!token) return res.status(401).json({ error: 'Token richiesto' });
 
   try {
-    // Verifica il token
+    // Verifica se il token è valido
     const decoded = jwt.verify(token, process.env.SECRET_KEY);
 
     // Verifica se il token è attivo
