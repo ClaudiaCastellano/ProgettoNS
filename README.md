@@ -24,7 +24,7 @@
  
 ## 1. Descrizione del Progetto
  
-Il progetto è un'applicazione mobile che consente agli utenti, dopo essersi registrati ed autenticati, di trasmettere e visualizzare flussi video in tempo reale. La piattaforma permette a un utente di avviare una trasmissione video (il "broadcaster") e ad altri utenti di unirsi alla diretta come "viewer". La comunicazione tra i vari componenti dell'app viene gestita tramite WebRTC per il flusso multimediale e Socket.IO per il signaling tra i dispositivi.
+Il progetto è un'applicazione mobile che consente agli utenti, dopo essersi registrati ed autenticati, di trasmettere e visualizzare flussi video in tempo reale. La piattaforma permette a un utente di avviare una trasmissione video (il "broadcaster") e ad altri utenti di unirsi alla diretta come "viewer". La comunicazione tra i vari componenti dell'app viene gestita tramite WebRTC per il flusso multimediale e Socket.IO per il signaling tra i dispositivi. Il sistema di autenticazione è basato su  basato su token JWT.
  
 ---
 
@@ -36,6 +36,9 @@ Il progetto è un'applicazione mobile che consente agli utenti, dopo essersi reg
 - **React Navigation**: Libreria per la gestione della navigazione tra le schermate dell'app.
 - **React Native WebRTC**: Modulo per integrare WebRTC con React Native, permettendo la gestione dei flussi audio e video.
 - **Mongodb**: Database document-oriented per memorizzare le credenziali di accesso degli utenti.
+- **JWT (JSON Web Token)**: Sistema di autenticazione basato su token.
+- **AsyncStorage**: Per la gestione dello stato locale e della persistenza del token di autenticazione.
+- **Axios**: Libreria per effettuare richieste al backend.
  
 ---
 
@@ -170,6 +173,7 @@ La struttura principale del progetto include:
 - **Home.js**: La schermata principale dove l'utente può scegliere di unirsi a una trasmissione o avviare una nuova diretta.
 - **Broadcaster.js**: Schermata per l'utente che trasmette il video (broadcaster).
 - **Viewer.js**: Schermata per l'utente che guarda la diretta.
+- **signaling.js** Gestisce la comunicazione WebRTC tra client e server tramite WebSocket.
 - **server/serves.js**: Server per lo scambio di informazioni di segnalazione.
 - **identityPrvider/server.js**: Server per la gestione della autenticazione degli utenti
  
@@ -182,22 +186,45 @@ La struttura principale del progetto include:
 - **Funzione**: Gestisce la navigazione tra le schermate dell'applicazione.
 - **StackNavigator**: Imposta il flusso di navigazione, permettendo agli utenti di spostarsi tra la schermata Home, il Broadcaster e il Viewer.
 - **Schermate**:
-  - **Home**: Schermata iniziale che offre la possibilità di avviare o partecipare a una trasmissione.
+  - **Home**: Schermata per la home page che offre la possibilità di avviare o partecipare a una trasmissione.
   - **Broadcaster**: Schermata per la gestione del flusso video da parte di un broadcaster.
   - **Viewer**: Schermata per i viewer che guardano la diretta.
+  - **LoginScreen**: Schermata per il login degli utenti.
+  - **RegisterScreen**: Schermata per la registrazione di un nuovo utente.
+
+### `LoginScreen`
+- **Funzione**: Schermata di login che permette agli utenti di autenticarsi inserendo email e password.
+- **Stato**:
+  - `email`: email fornita dall'utente.
+  - `password`: password fornita dall'utente.
+- **Funzione principale**:
+  - `handleLogin()`: Gestisce il login inviando una richiesta all'identity provider e salvando il token ricevuto.
+
+### `RegisterScreen`
+- **Funzione**: Schermata di resgistrazione che consente agli utenti di creare un nuovo account.
+- **Stato**:
+  - `email`: email fornita del nuovo account.
+  - `password`: password per il nuovo account.
+  - `confirmPassword`: conferma della password per la corretta registrazione.
+- **Funzione principale**:
+  - `handleRegister()`: Gestisce la registrazione eseguendo un check sulle password e inviando una richiesta all'identity provider.
+
  
 ### `Home.js`
  
-- **Funzione**: La schermata principale in cui l'utente può scegliere se unirsi a una diretta esistente o avviarne una nuova.
+- **Funzione**: La schermata principale in cui l'utente autenticato può scegliere se unirsi a una diretta esistente, avviarne una nuova o effettuare il logout.
 - **Stato**:
   - `streamId`: ID per l'identificazione delle dirette.
   - `availableStreams`: Elenco delle dirette disponibili a cui l'utente può unirsi.
   - `modalVisible`: Controlla la visibilità della finestra modale che mostra le dirette disponibili.
   - `showInput`: Determina se mostrare il campo di input per l'ID diretta.
+  - `username`: Usato per visualizzare il corretto username dell'utente in seguito al login. 
 - **Funzioni principali**:
+  - `setupSocket()`: Inizializza la socket.
   - `fetchAvailableStreams()`: Richiede la lista delle dirette disponibili al server tramite Socket.IO.
   - `joinStream()`: Permette di unirsi alla diretta selezionata.
   - `startBroadcast()`: Avvia una nuova diretta se è stato fornito un `streamId`.
+  - `handleLogout()`: Gestisce il logout eliminando i token e disconnettendo la socket.
  
 ### `Broadcaster.js`
  
