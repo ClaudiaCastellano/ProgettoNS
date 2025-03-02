@@ -17,6 +17,21 @@ const protectedUrl = `${config.IdP}/protected`;
 
 const liveStreams = {}; // Memorizza gli ID delle dirette e i relativi utenti
 
+//Funzione per verificare il token
+const verifyToken = async (token) => {
+  try {
+    const response = await axios.get(protectedUrl, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if(response.status === 200){
+      return true; // Token valido
+    }
+  }
+  catch (error) {
+    return null;
+  }
+};
+
 //Middleware per verificare il token
 io.use(async (socket, next) => {
   const token = socket.handshake.auth?.token; // Estrae il token dall’handshake
@@ -58,7 +73,7 @@ function handlerLeaveBroadcast(socket, streamId) {
     if (index !== -1) {
       stream.viewers.splice(index, 1);
       socket.leave(streamId);
-      io.to(streamId).emit("user-count", stream.viewers.length + 1);
+      io.to(streamId).emit("user-count", stream.viewers.length + 1); // Invia il numero aggiornato di viewer
     }
   }
 }
@@ -74,8 +89,17 @@ io.on("connection", (socket) => {
   });
 
   // Gestione avvio di una diretta
-  socket.on("start-broadcast", (streamId) => {
-    // Se l'ID diretta è già in uso, invia un errore
+  socket.on("start-broadcast", async (streamId) => {
+    const token = socket.handshake.auth?.token;  // Estrae il token dall'handshake
+    // Se il token non è presente, invia un errore
+    if (!token) {
+      socket.emit("error-broadcaster", "Token mancante");
+      return;
+    }
+    // Verifica il token
+    const valid = await verifyToken(token);
+    if(valid === true){  
+      // Se l'ID diretta è già in uso, invia un errore
     if (liveStreams[streamId]) {
       socket.emit("error-broadcaster", "Diretta già esistente");
       return;
@@ -84,22 +108,39 @@ io.on("connection", (socket) => {
     liveStreams[streamId] = { broadcaster: socket.id, viewers: [] };
     socket.join(streamId); 
     console.log(`Diretta "${streamId}" avviata da ${socket.user}`);
+    }else{
+      socket.emit("error-broadcaster", "Token non valido"); // Invia un errore se il token non è valido
+    }
+    
   });
 
   //  Gestione unione a una diretta
-  socket.on("join-broadcast", (streamId) => {
-    // Se l'ID diretta non esiste, invia un errore
-    const stream = liveStreams[streamId];
-    if (!stream) {
-      socket.emit("error-viewer", "Diretta non trovata");
+  socket.on("join-broadcast", async (streamId) => {
+    const token = socket.handshake.auth?.token; // Estrae il token dall'handshake
+    // Se il token non è presente, invia un errore
+    if (!token) {
+      socket.emit("error-viewer", "Token mancante");
       return;
     }
-    // Aggiunge l'utente alla lista dei viewer
-    stream.viewers.push(socket.id);
-    socket.join(streamId);
-    io.to(streamId).emit("user-count", stream.viewers.length + 1); // Invia il conteggio degli utenti
-    socket.to(streamId).emit("join-viewer", socket.id); // Invia il segnale di unione al broadcaster
-    console.log(`Utente ${socket.user} si è unito alla diretta "${streamId}"`);
+    // Verifica il token
+    const valid = await verifyToken(token);
+    if(valid === true){
+      // Se l'ID diretta non esiste, invia un errore
+      const stream = liveStreams[streamId];
+      if (!stream) {
+        socket.emit("error-viewer", "Diretta non trovata");
+        return;
+      }
+      // Aggiunge l'utente alla lista dei viewer
+      stream.viewers.push(socket.id);
+      socket.join(streamId);
+      io.to(streamId).emit("user-count", stream.viewers.length + 1); // Invia il numero aggiornato di utenti
+      socket.to(streamId).emit("join-viewer", socket.id); // Invia il segnale di unione al broadcaster
+      console.log(`Utente ${socket.user} si è unito alla diretta "${streamId}"`);
+    }
+    else{
+      socket.emit("error-viewer", "Token non valido"); // Invia un errore se il token non è valido
+    }
   });
 
   // Gestion segnali

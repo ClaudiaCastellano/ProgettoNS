@@ -23,7 +23,11 @@ const ViewerPage = ({ route, navigation }) => {
             Alert.alert("Errore", error, [{ text: "OK", onPress: () => {
                 setError(null);
                 setErrorShown(true);  // Imposta flag a true dopo aver mostrato l'alert
-                navigation.navigate("Home", { username });
+                if(error === "Token non valido" || error === "Token mancante"){
+                    navigation.navigate("Login"); // Naviga alla schermata di login in caso di errore di token
+                }else{
+                    navigation.navigate("Home", { username });
+                }
             }}]);
         }
     }, [error, errorShown]);
@@ -93,8 +97,8 @@ const ViewerPage = ({ route, navigation }) => {
                 });
 
                
-                socket.on("error-viewer", () => {
-                    setError("ID diretta non esistente");
+                socket.on("error-viewer", (err) => {
+                    setError(err);
                 });
 
                 // Listener per ricevere il flusso remoto

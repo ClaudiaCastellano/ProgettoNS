@@ -25,7 +25,12 @@ const BroadcasterPage = ({ route, navigation }) => {
             Alert.alert("Errore", error, [{ text: "OK", onPress: () => {
                 setError(null);
                 setErrorShown(true);  // Imposta flag a true dopo aver mostrato l'alert
-                navigation.navigate("Home", { username });
+                if(error === "Token non valido" || error === "Token mancante"){
+                    navigation.navigate("Login"); // Naviga alla schermata di login in caso di errore di token
+                }else{
+                    navigation.navigate("Home", { username });
+                }
+               
             }}]);
         }
     }, [error, errorShown]);
@@ -130,8 +135,8 @@ const BroadcasterPage = ({ route, navigation }) => {
             });
 
             // Listener per ricevere l'errore di diretta già esistente
-            socket.on("error-broadcaster", () => {
-                setError("ID diretta già utilizzato");
+            socket.on("error-broadcaster", (err) => {
+                setError(err);
             });
         
         };
@@ -173,21 +178,21 @@ const BroadcasterPage = ({ route, navigation }) => {
 
     return (
         <View style={broadcasterStyle.container}>
-        <Text style={broadcasterStyle.title}> Diretta "{streamId}" avviata</Text>
-        <Text style={broadcasterStyle.title}>Utenti connessi: {userCount}</Text>
-    
-        {/* Mostra il tuo flusso locale del broadcaster */}
-        {stream && (
-            <RTCView streamURL={stream.toURL()} style={broadcasterStyle.video} />
-        )}
-        {!stream && (
-            <Text>Sto cercando di acquisire il flusso video...</Text>
-        )}
-    
-        {/* Pulsante per girare la fotocamera */}
-        <TouchableOpacity style={broadcasterStyle.switchButton} onPress={toggleCamera}>
-            <Text style={broadcasterStyle.buttonText}>🔄 Cambia fotocamera</Text>
-        </TouchableOpacity>
+            <Text style={broadcasterStyle.title}> Diretta "{streamId}" avviata</Text>
+            <Text style={broadcasterStyle.title}>Utenti connessi: {userCount}</Text>
+        
+            {/* Mostra il tuo flusso locale del broadcaster */}
+            {stream && (
+                <RTCView streamURL={stream.toURL()} style={broadcasterStyle.video} />
+            )}
+            {!stream && (
+                <Text>Sto cercando di acquisire il flusso video...</Text>
+            )}
+        
+            {/* Pulsante per girare la fotocamera */}
+            <TouchableOpacity style={broadcasterStyle.switchButton} onPress={toggleCamera}>
+                <Text style={broadcasterStyle.buttonText}>🔄 Cambia fotocamera</Text>
+            </TouchableOpacity>
         </View>
     );
 };

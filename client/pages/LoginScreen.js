@@ -53,6 +53,7 @@ const LoginScreen = ({ navigation }) => {
       navigation.replace('Home');
     } catch (error) {
       // In caso di errore, mostra un alert con il messaggio di errore
+      console.log('errore',error);
       Alert.alert('Errore di login', error.response?.data?.error || 'Errore sconosciuto');
     }
   };

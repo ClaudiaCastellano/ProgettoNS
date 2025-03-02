@@ -27,7 +27,8 @@ const RegisterScreen = ({ navigation }) => {
     } catch (error) {
       // In caso di errore, mostra un alert con il messaggio di errore
       console.log('error', error);
-      Alert.alert('Errore nella registrazione', error.response?.data?.error || 'Errore sconosciuto');
+      Alert.alert('Errore', error.response?.data?.error || 'Errore sconosciuto', [{ text: 'OK', onPress: () => navigation.replace('Register') }]);
+
     }
   };
 

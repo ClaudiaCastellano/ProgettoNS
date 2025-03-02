@@ -46,7 +46,7 @@ export const initializeSocket = async () => {
       });
     } else {
       // Se il token non è presente, mostra un messaggio di errore
-      console.log('Token non trovato, impossibile connettersi al socket');
+      console.log('Token non trovato, impossibile connettersi alla socket');
       const error = new Error('Token non trovato, impossibile connettersi al socket');
       throw error;
     }

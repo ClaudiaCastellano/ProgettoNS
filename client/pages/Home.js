@@ -4,6 +4,7 @@ import { View,Text,TextInput, TouchableOpacity, FlatList, Modal, BackHandler} fr
 import { homestyle } from "./styles";
 import { initializeSocket, getSocket } from './signaling';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import config from './config';
 
 // Creazione del functional component Home
 const Home = ({ route, navigation }) => {
@@ -14,6 +15,7 @@ const Home = ({ route, navigation }) => {
   const [showInput, setShowInput] = useState(false);  // Stato per mostrare l'input per l'ID della diretta
   const [socket, setSocket] = useState(null); // Stato per la socket
   const [username, setUsername] = useState(initialUser);  // Stato per il nome utente
+  const logoutUrl = `${config.IdP}/logout`; // URL per il logout
 
   useEffect(() => {
     // Funzione per inizializzare la socket
@@ -83,7 +85,7 @@ const Home = ({ route, navigation }) => {
   };
 
   // Funzione per gestire il logout
-  const handleLogout = async () => {
+  /*const handleLogout = async () => {
     try {
       await AsyncStorage.removeItem('token'); // Elimina il token
       console.log('Token rimosso');
@@ -92,6 +94,32 @@ const Home = ({ route, navigation }) => {
       navigation.navigate("Login"); // Torna alla schermata di login
     } catch (error) {
       console.log('Errore nel logout:', error);
+    }
+  };*/
+
+  const handleLogout = async () => {
+    const token = await AsyncStorage.getItem('token');
+    if (!token) {
+      console.log('Token mancate, utente non autenticato');
+      return;
+    }
+
+    try {
+      const response = await fetch(logoutUrl, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      console.log('response', response);
+      if (response.status === 200) {
+        console.log('Logout effettuato');
+        await AsyncStorage.removeItem('token');
+        socket.disconnect();
+        navigation.navigate('Login');
+      } else {
+        console.log('Errore durante il logout:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Errore durante il logout:', error);
     }
   };
 

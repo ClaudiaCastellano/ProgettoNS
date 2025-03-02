@@ -3,14 +3,14 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const cors = require('cors');
 const https = require('https');
 const fs = require('fs');
 const User = require('./models/User');
+const ActiveTokens = require('./models/ActiveTokens');
 
 const app = express();
 app.use(express.json());
-app.use(cors()); 
+
 
 // Connessione a MongoDB
 mongoose.connect(process.env.DB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -47,7 +47,7 @@ app.post('/login', async (req, res) => {
 
   try {
     // Trova l'utente nel database
-    const user = await User.findOne({ email });
+    const user = await User.findOne({email });
     if (!user) return res.status(400).json({ error: 'Utente non trovato' });
 
     // Confronta la password hashata
@@ -56,15 +56,17 @@ app.post('/login', async (req, res) => {
 
     // Genera il token JWT
     const token = jwt.sign({ userId: user._id, email: user.email }, process.env.SECRET_KEY, { expiresIn: 600 });
-    console.log('Token generato:', token);
+    await ActiveTokens.create({ userId: user._id, token });
+    console.log('Token generato e salvato:', token);
     res.json({ token });
   } catch (err) {
+    console.log(err);
     res.status(500).json({ error: 'Errore durante il login' });
   }
 });
 
 // Middleware di autenticazione
-const authenticate = (req, res, next) => {
+const authenticate = async (req, res, next) => {
   console.log('autenticando...');
   // Estrae il token dall'header
   const token = req.headers.authorization?.split('Bearer ')[1];
@@ -72,14 +74,45 @@ const authenticate = (req, res, next) => {
 
   try {
     // Verifica il token
-    req.user = jwt.verify(token, process.env.SECRET_KEY);
+    const decoded = jwt.verify(token, process.env.SECRET_KEY);
+
+    // Verifica se il token è attivo
+    const activeToken = await ActiveTokens.findOne({ userId: decoded.userId, token });
+    // Se il token non è attivo, restituisce un errore
+    if (!activeToken) {
+      console.log('Token non valido o revocato');
+      return res.status(401).json({ error: 'Token non valido o revocato' });
+    }
+    // Salva i dati utente nell'oggetto req
+    req.user = decoded;
     console.log('Utente autenticato:', req.user);
     next();
   } catch {
     console.log('Token non valido');
     res.status(401).json({ error: 'Token non valido' });
-  }
+  } 
 };
+
+// Logout utente
+app.post('/logout', async (req, res) => {
+  try {
+    // Estrae il token dall'header
+    const token = req.headers.authorization.split('Bearer ')[1];
+    if(!token){
+      return res.status(401).json({ error: 'Token mancante' });
+    } 
+    // Verifica se il token è attivo
+    const activeToken = await ActiveTokens.findOne({ token });
+    if(activeToken){
+      await activeToken.deleteOne({token }); // Elimina il token attivo
+      return res.status(200).json({ message: 'Logout effettuato' });
+    }else{
+      return res.status(200).json({ message: 'Token già scaduto o revocato' }); 
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'Errore durante il logout' });
+  }
+});
 
 // Endpoint protetto che richiede autenticazione
 app.get('/protected', authenticate, (req, res) => {
