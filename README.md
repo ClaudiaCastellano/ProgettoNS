@@ -24,7 +24,7 @@
  
 ## 1. Descrizione del Progetto
  
-Il progetto è un'applicazione mobile che consente agli utenti, dopo essersi registrati ed autenticati, di trasmettere e visualizzare flussi video in tempo reale. La piattaforma permette a un utente di avviare una trasmissione video (il "broadcaster") e ad altri utenti di unirsi alla diretta come "viewer". La comunicazione tra i vari componenti dell'app viene gestita tramite WebRTC per il flusso multimediale e Socket.IO per il signaling tra i dispositivi. Il sistema di autenticazione è basato su  basato su token JWT.
+Il progetto è un'applicazione mobile che consente agli utenti, dopo essersi registrati ed autenticati, di trasmettere e visualizzare flussi video in tempo reale. La piattaforma permette a un utente di avviare una trasmissione video (il "broadcaster") e ad altri utenti di unirsi alla diretta come "viewer". La comunicazione tra i vari componenti dell'app viene gestita tramite WebRTC per il flusso multimediale e Socket.IO per il signaling tra i dispositivi. Il sistema di autenticazione è basato su token JWT.
  
 ---
 
